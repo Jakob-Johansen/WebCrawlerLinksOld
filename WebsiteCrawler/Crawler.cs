@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 using WebsiteCrawler.Models;
 
 namespace WebsiteCrawler
@@ -30,16 +31,15 @@ namespace WebsiteCrawler
             {
                 if (dbStuff.CheckIfExist(_url)) // Er true.
                 {
-                    Console.WriteLine("De er ens");
 
-                    foreach (var item in dbStuff.GetAllNotCrawled())
+                    var item = dbStuff.GetNextNotCrawled();
+
+                    if (!item.Link.Contains("//") && !item.Link.Contains("http") && !item.Link.Contains("jpg") && !item.Link.Contains("png") && !item.Link.Contains("jpeg"))
                     {
-                        if (!item.Link.Contains("//") && !item.Link.Contains("http") && !item.Link.Contains("jpg") && !item.Link.Contains("png"))
-                        {
-                            Console.WriteLine(item.Id);
-                            dbStuff.UpdateLink(item.Id);
-                            StartWebCrawler(_url + item.Link).Wait();
-                        }
+                        Console.WriteLine("ID: " + item.Id);
+
+                        dbStuff.UpdateLink(item.Id);
+                        StartWebCrawler(_url + item.Link).Wait();
                     }
                 }
                 else
@@ -111,6 +111,7 @@ namespace WebsiteCrawler
                 }
             }
 
+            LoadCrawler();
         }
 
     }

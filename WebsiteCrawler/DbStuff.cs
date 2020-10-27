@@ -57,10 +57,10 @@ namespace WebsiteCrawler
             return false;
         }
 
-        public List<Links> GetAllNotCrawled()
+        public Links GetNextNotCrawled()
         {
-            string getAllQuery = "SELECT * FROM Links WHERE Crawled = 0";
-            List<Links> linkList = new List<Links>();
+            string getAllQuery = "SELECT * FROM Links WHERE Crawled = 0 ORDER BY Id DESC";
+            var linkModel = new Links();
 
             using (SqlConnection sqlConn = new SqlConnection(_connString))
             {
@@ -74,19 +74,14 @@ namespace WebsiteCrawler
                         int GetId = Convert.ToInt32(reader["Id"]);
                         int GetCrawled = Convert.ToInt32(reader["Crawled"]);
 
-                        var linkModel = new Links()
-                        {
-                            Id = GetId,
-                            Link = reader["Link"].ToString(),
-                            Crawled = GetCrawled
-                        };
-
-                        linkList.Add(linkModel);
+                        linkModel.Id = GetId;
+                        linkModel.Link = reader["Link"].ToString();
+                        linkModel.Crawled = GetCrawled;
                     }
                     command.Connection.Close();
                 }
             }
-            return linkList;
+            return linkModel;
         }
 
         public void UpdateLink(int id)
