@@ -31,14 +31,12 @@ namespace WebsiteCrawler
             {
                 if (dbStuff.CheckIfExist(_url)) // Er true.
                 {
-
                     Links item = dbStuff.GetNextNotCrawled();
 
-                    if (!item.Link.Contains("//") && !item.Link.Contains("http") && !item.Link.Contains("jpg") && !item.Link.Contains("png") && !item.Link.Contains("jpeg"))
+                    if (!item.Link.Contains("//") && !item.Link.Contains("http") && !item.Link.Contains("jpg") && !item.Link.Contains("png") && !item.Link.Contains("jpeg") && item.Crawled != 1)
                     {
-                        Console.WriteLine("ID: " + item.Id);
-
                         dbStuff.UpdateLink(item.Id);
+                        Console.WriteLine("Crawled Id: " + item.Id);
                         StartWebCrawler(_url + item.Link).Wait();
                     }
                     else
