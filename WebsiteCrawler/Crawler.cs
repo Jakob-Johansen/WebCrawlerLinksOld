@@ -32,7 +32,7 @@ namespace WebsiteCrawler
                 if (dbStuff.CheckIfExist(_url)) // Er true.
                 {
 
-                    var item = dbStuff.GetNextNotCrawled();
+                    Links item = dbStuff.GetNextNotCrawled();
 
                     if (!item.Link.Contains("//") && !item.Link.Contains("http") && !item.Link.Contains("jpg") && !item.Link.Contains("png") && !item.Link.Contains("jpeg"))
                     {
@@ -40,6 +40,11 @@ namespace WebsiteCrawler
 
                         dbStuff.UpdateLink(item.Id);
                         StartWebCrawler(_url + item.Link).Wait();
+                    }
+                    else
+                    {
+                        dbStuff.UpdateLink(item.Id);
+                        LoadCrawler();
                     }
                 }
                 else
@@ -96,7 +101,7 @@ namespace WebsiteCrawler
                     Crawled = 1
                 };
 
-                dbStuff.InputLink(linkModel);
+                dbStuff.InputLink(linkModel, 1);
                 StartWebCrawler(link).Wait();
             }
         }
@@ -107,7 +112,7 @@ namespace WebsiteCrawler
             {
                 if (!dbStuff.CheckIfExist(item.Link) && item.Link.Length > 2 && item.Link.Contains("/"))
                 {
-                    dbStuff.InputLink(item);
+                    dbStuff.InputLink(item, 0);
                 }
             }
 
