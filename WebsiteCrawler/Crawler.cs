@@ -37,7 +37,7 @@ namespace WebsiteCrawler
 
                     if (item.Id != 0)
                     {
-
+                        // FIX!
                         // && !item.Link.Contains("@") && !item.Link.Contains("javascript:void(") && !item.Link.Contains(":+")
                         if (!item.Link.Contains("//") && !item.Link.Contains("http") && !item.Link.Contains("jpg") && !item.Link.Contains("png") && !item.Link.Contains("jpeg") && !item.Link.Contains("@") && !item.Link.Contains("javascript:void(") && !item.Link.Contains(":+") && item.Crawled == 0)
                         {
