@@ -65,6 +65,34 @@ namespace WebsiteCrawler
             return false;
         }
 
+        public bool CheckIfCrawled(string url)
+        {
+            string query = "SELECT * FROM Links WHERE Link=@Link";
+
+            using (SqlConnection sqlConn = new SqlConnection(_connString))
+            {
+                SqlCommand command = new SqlCommand(query, sqlConn);
+                command.Connection.Open();
+
+                command.Parameters.AddWithValue("@Link", url);
+
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        int getCrawled = Convert.ToInt32(reader["Crawled"]);
+
+                        if (url == reader["Link"].ToString() && getCrawled == 1)
+                        {
+                            return true;
+                        }
+                    }
+                    command.Connection.Close();
+                }
+            }
+            return false;
+        }
+
         public Links GetNextNotCrawled()
         {
             string getAllQuery = "SELECT * FROM Links WHERE Crawled = 0 ORDER BY Id DESC";
@@ -92,9 +120,9 @@ namespace WebsiteCrawler
             return linkModel;
         }
 
-        public void UpdateLink(int id)
+        public void UpdateLink(int id, int setCrawledTo)
         {
-            string query = "UPDATE Links SET Crawled = '1' WHERE Id = @Id";
+            string query = "UPDATE Links SET Crawled = @Crawled WHERE Id = @Id";
 
             using (SqlConnection sqlConn = new SqlConnection(_connString))
             {
@@ -102,6 +130,17 @@ namespace WebsiteCrawler
                 command.Connection.Open();
 
                 command.Parameters.AddWithValue("@Id", id).Value = id;
+
+                var commandAddCrawled = command.Parameters.AddWithValue("@Crawled", setCrawledTo);
+
+                if (setCrawledTo == 1)
+                {
+                    commandAddCrawled.Value = 1;
+                }
+                else
+                {
+                    commandAddCrawled.Value = 2;
+                }
 
                 SqlDataReader reader = command.ExecuteReader();
                 command.Connection.Close();

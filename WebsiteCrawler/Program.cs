@@ -6,7 +6,7 @@ namespace WebsiteCrawler
     {
         static void Main(string[] args)
         {
-            Crawler crawler = new Crawler("https://www.automobile.tn");
+            Crawler crawler = new Crawler("https://www.apple.com/"); //https://www.automobile.tn
             crawler.LoadCrawler();
         }
     }
