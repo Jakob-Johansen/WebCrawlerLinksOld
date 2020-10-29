@@ -24,17 +24,13 @@ namespace WebsiteCrawler
             Console.WriteLine("Crawler Starting\n");
         }
 
-        public void LoadCrawler()
+        public  async Task LoadCrawler()
         {
             if (_url == null || _url.Length == 0)
             {
                 Console.WriteLine("Dit link er ugyldit");
                 return;
             }
-
-            // FIX!
-            // && !item.Link.Contains("@") && !item.Link.Contains("javascript:void(") && !item.Link.Contains(":+")
-            //!item.Link.Contains("//") && !item.Link.Contains("http") && !item.Link.Contains("jpg") && !item.Link.Contains("png") && !item.Link.Contains("jpeg") && item.Crawled == 0
 
             if (dbStuff.CheckIfExist(_url))
             {
@@ -46,68 +42,91 @@ namespace WebsiteCrawler
                     return;
                 }
 
-                if (ValidateFilter(nextLink.Link) && !nextLink.Link.Contains("//") && !nextLink.Link.Contains("http") && !nextLink.Link.Contains("jpg") && !nextLink.Link.Contains("jpeg") && !nextLink.Link.Contains("png") && nextLink.Crawled == 0)
+                //ValidateFilter(nextLink.Link) && !nextLink.Link.Contains("//") && !nextLink.Link.Contains("http") && !nextLink.Link.Contains("jpg") && !nextLink.Link.Contains("jpeg") && !nextLink.Link.Contains("png") && nextLink.Crawled == 0
+                if (ValidateFilter(nextLink.Link) && !nextLink.Link.Contains("//") && !nextLink.Link.Contains("http") && !nextLink.Link.Contains(".jpg") && !nextLink.Link.Contains(".jpeg") && !nextLink.Link.Contains(".png") && !nextLink.Link.Contains(".mp3") && !nextLink.Link.Contains(".mp4") && !nextLink.Link.Contains(".exe") && nextLink.Crawled == 0)
                 {
                     Console.WriteLine("Crawled Id: " + nextLink.Id);
                     Console.WriteLine("Crawled Link: " + nextLink.Link);
                     dbStuff.UpdateLink(nextLink.Id, 1);
-                    StartWebCrawler(_url + nextLink.Link).Wait();
+                    await StartWebCrawler(nextLink);
                 }
                 else
                 {
                     dbStuff.UpdateLink(nextLink.Id, 2);
-                    LoadCrawler();
+                    await LoadCrawler();
                 }
             }
             else
             {
-                SortLinks(_url);
+                await SortLinks(_url);
             }
         }
 
-        public async Task StartWebCrawler(string url)
+        public async Task StartWebCrawler(Links thisModel)
         {
-            url = url.Trim();
+            string url;
+
+            // ---
+            if (_url == thisModel.Link)
+                url = _url;
+            else
+                url = _url + thisModel.Link.Trim();
+            // ---
 
             HttpClient httpClient = new HttpClient();
 
-            var html = await httpClient.GetStringAsync(url);
-
-            HtmlDocument htmlDocument = new HtmlDocument();
-
-            htmlDocument.LoadHtml(html);
-
-            //var keyWordTags = htmlDocument.DocumentNode.Descendants("meta").ToList().Where(node => node.Attributes.Any(x => x.Name.Equals("name") && x.Value.Equals("keywords")));
-            //string[] keyWordTagsArray = keyWordTags.FirstOrDefault().ChildAttributes("content").FirstOrDefault().Value.Split(',');
-            //List<string> keyWordList = new List<string>();
-
-            var filteredLinks = htmlDocument.DocumentNode.Descendants().Where(node => node.Name.Equals("a")).ToList().Where(x => x.Attributes.Any(t => t.Name.Equals("href")));
-            List<Links> linkList = new List<Links>();
-
-            foreach (var item in filteredLinks)
+            try
             {
-                var itemLink = item.ChildAttributes("href").FirstOrDefault().Value;
-                if (!dbStuff.CheckIfExist(itemLink))
-                {
-                    Links linkModel = new Links()
-                    {
-                        Link = itemLink,
-                        Crawled = 0
-                    };
+                HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(url);
 
-                    linkList.Add(linkModel);
+                if (httpResponseMessage.StatusCode == HttpStatusCode.MovedPermanently)
+                {
+                    dbStuff.UpdateLink(thisModel.Id, 2);
+                    await LoadCrawler();
+                }
+                else
+                {
+                    var html = await httpClient.GetStringAsync(url);
+
+                    HtmlDocument htmlDocument = new HtmlDocument();
+
+                    htmlDocument.LoadHtml(html);
+
+                    var filteredLinks = htmlDocument.DocumentNode.Descendants().Where(node => node.Name.Equals("a")).ToList().Where(x => x.Attributes.Any(t => t.Name.Equals("href")));
+                    List<Links> linkList = new List<Links>();
+
+                    foreach (var item in filteredLinks)
+                    {
+                        var itemLink = item.ChildAttributes("href").FirstOrDefault().Value;
+                        if (!dbStuff.CheckIfExist(itemLink))
+                        {
+                            Links linkModel = new Links()
+                            {
+                                Link = itemLink,
+                                Crawled = 0
+                            };
+
+                            linkList.Add(linkModel);
+                        }
+                    }
+
+                    if (linkList == null)
+                    {
+                        await LoadCrawler();
+                    }
+
+                    await SortLinks(linkList);
                 }
             }
-
-            if (linkList == null)
+            catch (HttpRequestException)
             {
-                LoadCrawler();
+                Console.WriteLine("Der skete en fejl");
+                Console.WriteLine(url);
+                return;
             }
-
-            SortLinks(linkList);
         }
 
-        public void SortLinks(string link)
+        public async Task SortLinks(string link)
         {
             if (link.Contains("http"))
             {
@@ -117,18 +136,17 @@ namespace WebsiteCrawler
                 };
 
                 dbStuff.InputLink(linkModel, 1);
-                StartWebCrawler(link).Wait();
+                await StartWebCrawler(linkModel);
             }
         }
 
-        public void SortLinks(List<Links> links)
+        public async Task SortLinks(List<Links> links)
         {
             foreach (var item in links)
             {
+
                 if (!dbStuff.CheckIfExist(item.Link) && item.Link.Length > 1)
                 {
-                    //https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebrequest.allowautoredirect?redirectedfrom=MSDN&view=netcore-3.1#System_Net_HttpWebRequest_AllowAutoRedirect
-
                     if (ValidateFilter(item.Link))
                     {
                         dbStuff.InputLink(item, 0);
@@ -139,8 +157,8 @@ namespace WebsiteCrawler
                     }
                 }
             }
-
-            LoadCrawler();
+            
+           await LoadCrawler();
         }
 
         public bool ValidateFilter(string link)
@@ -160,18 +178,26 @@ namespace WebsiteCrawler
             return false;
         }
 
-        //public void SortLinks(List<Links> links)
-        //{
-        //    foreach (var item in links)
-        //    {
-        //        if (!dbStuff.CheckIfExist(item.Link) && item.Link.Length > 2)
-        //        {
-        //            dbStuff.InputLink(item, 0);
-        //        }
-        //    }
-
-        //    LoadCrawler();
-        //}
-
+        public async Task CheckIfMovedPerm(Links item)
+        {
+            HttpClient httpClient = new HttpClient();
+            try
+            {
+                HttpResponseMessage test = await httpClient.GetAsync(_url + item.Link);
+                if (test.StatusCode == HttpStatusCode.MovedPermanently)
+                {
+                    dbStuff.InputLink(item, 2);
+                }
+                else
+                {
+                    dbStuff.InputLink(item, 0);
+                }
+            }
+            catch (HttpRequestException)
+            {
+                Console.WriteLine("Der skete en fejl");
+                Console.WriteLine(item.Link);
+            }
+        }
     }
 }
