@@ -1,18 +1,23 @@
 ﻿using System;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace WebsiteCrawler
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            Crawler crawler = new Crawler("https://www.adidas.dk/"); //https://www.automobile.tn
-            crawler.LoadCrawler();
+            // https://www.automobile.tn
+            // https://www.apple.com/
+            // https://www.proshop.dk/
+            // http://monosoft.dk/
 
-            //Test test = new Test("http://www.monosoft.dk/");
-            //test.LoadCrawler();
-
+            // KIG PÅ DBSTUFF!
+            Crawler crawler = new Crawler("http://monosoft.dk/"); 
+            await crawler.LoadCrawler();
         }
     }
 }

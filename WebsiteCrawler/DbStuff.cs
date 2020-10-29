@@ -11,7 +11,7 @@ namespace WebsiteCrawler
 {
     public class DbStuff
     {
-        private readonly string _connString = "Data Source=DESKTOP-FQAC8LI\\SQLEXPRESS;Initial Catalog=WebCrawler; Integrated Security=true;";
+        private readonly string _connString = "Data Source=DESKTOP-UQ2GKS7;Initial Catalog=WebsiteCrawler; Integrated Security=true;";
 
         public void InputLink(Links link, int CrawelOrNot)
         {
