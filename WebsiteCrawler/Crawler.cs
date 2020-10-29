@@ -19,9 +19,13 @@ namespace WebsiteCrawler
 
         private readonly Timer _timer = new Timer();
 
+        private readonly HttpClient _httpClient; 
+
         public Crawler(string url)
         {
             _url = url.Trim();
+            _httpClient = new HttpClient();
+
             Console.WriteLine("Crawler Starting");
             _timer.StartTimer();
         }
@@ -76,11 +80,9 @@ namespace WebsiteCrawler
                 url = _url + thisModel.Link.Trim();
             // ---
 
-            HttpClient httpClient = new HttpClient();
-
             try
             {
-                HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(url);
+                HttpResponseMessage httpResponseMessage = await _httpClient.GetAsync(url);
 
                 if (httpResponseMessage.StatusCode == HttpStatusCode.MovedPermanently)
                 {
@@ -89,7 +91,7 @@ namespace WebsiteCrawler
                 }
                 else
                 {
-                    var html = await httpClient.GetStringAsync(url);
+                    var html = await _httpClient.GetStringAsync(url);
 
                     HtmlDocument htmlDocument = new HtmlDocument();
 
@@ -128,6 +130,7 @@ namespace WebsiteCrawler
                 Console.WriteLine(url);
                 return;
             }
+            _httpClient.Dispose();
         }
 
         public async Task SortLinks(string link)
@@ -148,7 +151,6 @@ namespace WebsiteCrawler
         {
             foreach (var item in links)
             {
-
                 if (!_dbStuff.CheckIfExist(item.Link) && item.Link.Length > 1)
                 {
                     if (ValidateFilter(item.Link))

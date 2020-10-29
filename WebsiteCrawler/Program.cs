@@ -19,8 +19,8 @@ namespace WebsiteCrawler
             // KIG PÅ SORTLIKS FILTER IGEN!
 
             // LAV SÅ DEN OGSÅ KAN CRAWLE JAVASCRIPT SIDER.
-
-            Crawler crawler = new Crawler("http://monosoft.dk/"); 
+            // LAV SÅ DEN TJEKKER OM DER KOMMER SKRÅSTREJ EFTER LINKET, OG TJEK OM DER ER SKRÅSTREJ FØR CRAWLED UNDERLINK.
+            Crawler crawler = new Crawler("https://www.proshop.dk/");
             await crawler.LoadCrawler();
         }
     }
