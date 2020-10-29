@@ -5,23 +5,25 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using System.Xml;
 using WebsiteCrawler.Models;
 
 namespace WebsiteCrawler
 {
     public class Crawler
     {
-        private DbStuff dbStuff = new DbStuff();
+        private readonly DbStuff _dbStuff = new DbStuff();
 
         private readonly string _url;
+
+        private readonly Timer _timer = new Timer();
 
         public Crawler(string url)
         {
             _url = url.Trim();
-            Console.WriteLine("Crawler Starting\n");
+            Console.WriteLine("Crawler Starting");
+            _timer.StartTimer();
         }
 
         public  async Task LoadCrawler()
@@ -32,13 +34,14 @@ namespace WebsiteCrawler
                 return;
             }
 
-            if (dbStuff.CheckIfExist(_url))
+            if (_dbStuff.CheckIfExist(_url))
             {
-                var nextLink = dbStuff.GetNextNotCrawled();
+                var nextLink = _dbStuff.GetNextNotCrawled();
 
                 if (nextLink.Id == 0)
                 {
-                    Console.WriteLine("\nCrawler Done");
+                    _timer.StopTimer();
+                    Console.WriteLine("Crawler Done");
                     return;
                 }
 
@@ -47,12 +50,12 @@ namespace WebsiteCrawler
                 {
                     Console.WriteLine("Crawled Id: " + nextLink.Id);
                     Console.WriteLine("Crawled Link: " + nextLink.Link);
-                    dbStuff.UpdateLink(nextLink.Id, 1);
+                    _dbStuff.UpdateLink(nextLink.Id, 1);
                     await StartWebCrawler(nextLink);
                 }
                 else
                 {
-                    dbStuff.UpdateLink(nextLink.Id, 2);
+                    _dbStuff.UpdateLink(nextLink.Id, 2);
                     await LoadCrawler();
                 }
             }
@@ -81,7 +84,7 @@ namespace WebsiteCrawler
 
                 if (httpResponseMessage.StatusCode == HttpStatusCode.MovedPermanently)
                 {
-                    dbStuff.UpdateLink(thisModel.Id, 2);
+                    _dbStuff.UpdateLink(thisModel.Id, 2);
                     await LoadCrawler();
                 }
                 else
@@ -98,7 +101,8 @@ namespace WebsiteCrawler
                     foreach (var item in filteredLinks)
                     {
                         var itemLink = item.ChildAttributes("href").FirstOrDefault().Value;
-                        if (!dbStuff.CheckIfExist(itemLink))
+
+                        if (!_dbStuff.CheckIfExist(itemLink))
                         {
                             Links linkModel = new Links()
                             {
@@ -135,7 +139,7 @@ namespace WebsiteCrawler
                     Crawled = 1
                 };
 
-                dbStuff.InputLink(linkModel, 1);
+                _dbStuff.InputLink(linkModel, 1);
                 await StartWebCrawler(linkModel);
             }
         }
@@ -145,15 +149,15 @@ namespace WebsiteCrawler
             foreach (var item in links)
             {
 
-                if (!dbStuff.CheckIfExist(item.Link) && item.Link.Length > 1)
+                if (!_dbStuff.CheckIfExist(item.Link) && item.Link.Length > 1)
                 {
                     if (ValidateFilter(item.Link))
                     {
-                        dbStuff.InputLink(item, 0);
+                        _dbStuff.InputLink(item, 0);
                     }
                     else
                     {
-                        dbStuff.InputLink(item, 2);
+                        _dbStuff.InputLink(item, 2);
                     }
                 }
             }
@@ -176,28 +180,6 @@ namespace WebsiteCrawler
             }
 
             return false;
-        }
-
-        public async Task CheckIfMovedPerm(Links item)
-        {
-            HttpClient httpClient = new HttpClient();
-            try
-            {
-                HttpResponseMessage test = await httpClient.GetAsync(_url + item.Link);
-                if (test.StatusCode == HttpStatusCode.MovedPermanently)
-                {
-                    dbStuff.InputLink(item, 2);
-                }
-                else
-                {
-                    dbStuff.InputLink(item, 0);
-                }
-            }
-            catch (HttpRequestException)
-            {
-                Console.WriteLine("Der skete en fejl");
-                Console.WriteLine(item.Link);
-            }
         }
     }
 }
