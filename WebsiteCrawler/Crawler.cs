@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,48 +21,47 @@ namespace WebsiteCrawler
         public Crawler(string url)
         {
             _url = url.Trim();
-            Console.WriteLine("Crawler Starting.");
+            Console.WriteLine("Crawler Starting\n");
         }
 
         public void LoadCrawler()
         {
             if (_url == null || _url.Length == 0)
             {
-                Console.WriteLine("Dit link er ikke gyldigt");
+                Console.WriteLine("Dit link er ugyldit");
+                return;
             }
-            else
-            {
-                if (dbStuff.CheckIfExist(_url)) // Er true.
-                {
-                    Links item = dbStuff.GetNextNotCrawled();
 
-                    if (item.Id != 0)
-                    {
-                        // FIX!
-                        // && !item.Link.Contains("@") && !item.Link.Contains("javascript:void(") && !item.Link.Contains(":+")
-                        if (!item.Link.Contains("//") && !item.Link.Contains("http") && !item.Link.Contains("jpg") && !item.Link.Contains("png") && !item.Link.Contains("jpeg") && !item.Link.Contains("@") && !item.Link.Contains("javascript:void(") && !item.Link.Contains(":+") && item.Crawled == 0)
-                        {
-                            dbStuff.UpdateLink(item.Id, 1);
-                            Console.WriteLine("Crawled Id: " + item.Id);
-                            Console.WriteLine("Crawled Link: " + item.Link);
-                            StartWebCrawler(_url + item.Link).Wait();
-                        }
-                        else
-                        {
-                            dbStuff.UpdateLink(item.Id, 2);
-                            LoadCrawler();
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine("Crawler Done");
-                    }
+            // FIX!
+            // && !item.Link.Contains("@") && !item.Link.Contains("javascript:void(") && !item.Link.Contains(":+")
+            //!item.Link.Contains("//") && !item.Link.Contains("http") && !item.Link.Contains("jpg") && !item.Link.Contains("png") && !item.Link.Contains("jpeg") && item.Crawled == 0
+
+            if (dbStuff.CheckIfExist(_url))
+            {
+                var nextLink = dbStuff.GetNextNotCrawled();
+
+                if (nextLink.Id == 0)
+                {
+                    Console.WriteLine("\nCrawler Done");
+                    return;
+                }
+
+                if (ValidateFilter(nextLink.Link) && !nextLink.Link.Contains("//") && !nextLink.Link.Contains("http") && !nextLink.Link.Contains("jpg") && !nextLink.Link.Contains("jpeg") && !nextLink.Link.Contains("png") && nextLink.Crawled == 0)
+                {
+                    Console.WriteLine("Crawled Id: " + nextLink.Id);
+                    Console.WriteLine("Crawled Link: " + nextLink.Link);
+                    dbStuff.UpdateLink(nextLink.Id, 1);
+                    StartWebCrawler(_url + nextLink.Link).Wait();
                 }
                 else
                 {
-                    Console.WriteLine("De er ikke ens");
-                    SortLinks(_url);
+                    dbStuff.UpdateLink(nextLink.Id, 2);
+                    LoadCrawler();
                 }
+            }
+            else
+            {
+                SortLinks(_url);
             }
         }
 
@@ -86,12 +86,12 @@ namespace WebsiteCrawler
 
             foreach (var item in filteredLinks)
             {
-                var test = item.ChildAttributes("href").FirstOrDefault().Value;
-                if (!dbStuff.CheckIfExist(test))
+                var itemLink = item.ChildAttributes("href").FirstOrDefault().Value;
+                if (!dbStuff.CheckIfExist(itemLink))
                 {
                     Links linkModel = new Links()
                     {
-                        Link = test,
+                        Link = itemLink,
                         Crawled = 0
                     };
 
@@ -125,14 +125,53 @@ namespace WebsiteCrawler
         {
             foreach (var item in links)
             {
-                if (!dbStuff.CheckIfExist(item.Link) && item.Link.Length > 2)
+                if (!dbStuff.CheckIfExist(item.Link) && item.Link.Length > 1)
                 {
-                    dbStuff.InputLink(item, 0);
+                    //https://docs.microsoft.com/en-us/dotnet/api/system.net.httpwebrequest.allowautoredirect?redirectedfrom=MSDN&view=netcore-3.1#System_Net_HttpWebRequest_AllowAutoRedirect
+
+                    if (ValidateFilter(item.Link))
+                    {
+                        dbStuff.InputLink(item, 0);
+                    }
+                    else
+                    {
+                        dbStuff.InputLink(item, 2);
+                    }
                 }
             }
 
             LoadCrawler();
         }
+
+        public bool ValidateFilter(string link)
+        {
+            string extension = Path.GetExtension(link);
+
+            if (link.Contains(":") && !link.Contains("/"))
+            {
+                return false;
+            }
+
+            if (link.Contains("/") || extension.Length > 2)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        //public void SortLinks(List<Links> links)
+        //{
+        //    foreach (var item in links)
+        //    {
+        //        if (!dbStuff.CheckIfExist(item.Link) && item.Link.Length > 2)
+        //        {
+        //            dbStuff.InputLink(item, 0);
+        //        }
+        //    }
+
+        //    LoadCrawler();
+        //}
 
     }
 }
