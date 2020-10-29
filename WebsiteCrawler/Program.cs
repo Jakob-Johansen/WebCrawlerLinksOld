@@ -16,6 +16,10 @@ namespace WebsiteCrawler
             // http://monosoft.dk/
 
             // KIG PÅ DBSTUFF!
+            // KIG PÅ SORTLIKS FILTER IGEN!
+
+            // LAV SÅ DEN OGSÅ KAN CRAWLE JAVASCRIPT SIDER.
+
             Crawler crawler = new Crawler("http://monosoft.dk/"); 
             await crawler.LoadCrawler();
         }
