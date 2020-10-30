@@ -19,12 +19,15 @@ namespace WebsiteCrawler
 
         private readonly Timer _timer = new Timer();
 
-        private readonly HttpClient _httpClient; 
+        private readonly HttpClient _httpClient;
+
+        private readonly Logs _log;
 
         public Crawler(string url)
         {
             _url = url.Trim();
             _httpClient = new HttpClient();
+            _log = new Logs();
 
             Console.WriteLine("Crawler Starting");
             _timer.StartTimer();
@@ -50,7 +53,7 @@ namespace WebsiteCrawler
                 }
 
                 //ValidateFilter(nextLink.Link) && !nextLink.Link.Contains("//") && !nextLink.Link.Contains("http") && !nextLink.Link.Contains("jpg") && !nextLink.Link.Contains("jpeg") && !nextLink.Link.Contains("png") && nextLink.Crawled == 0
-                if (ValidateFilter(nextLink.Link) && !nextLink.Link.Contains("//") && !nextLink.Link.Contains("http") && !nextLink.Link.Contains(".jpg") && !nextLink.Link.Contains(".jpeg") && !nextLink.Link.Contains(".png") && !nextLink.Link.Contains(".mp3") && !nextLink.Link.Contains(".mp4") && !nextLink.Link.Contains(".exe") && nextLink.Crawled == 0)
+                if (ValidateFilter(nextLink) && !nextLink.Link.Contains("//") && !nextLink.Link.Contains("http") && !nextLink.Link.Contains(".jpg") && !nextLink.Link.Contains(".jpeg") && !nextLink.Link.Contains(".png") && !nextLink.Link.Contains(".mp3") && !nextLink.Link.Contains(".mp4") && !nextLink.Link.Contains(".exe"))
                 {
                     Console.WriteLine("Crawled Id: " + nextLink.Id);
                     Console.WriteLine("Crawled Link: " + nextLink.Link);
@@ -124,11 +127,14 @@ namespace WebsiteCrawler
                     await SortLinks(linkList);
                 }
             }
-            catch (HttpRequestException)
+            catch (HttpRequestException e)
             {
                 Console.WriteLine("Der skete en fejl");
                 Console.WriteLine(url);
-                return;
+
+                _log.CreateLog(url, e.Message);
+
+                await LoadCrawler();
             }
             _httpClient.Dispose();
         }
@@ -153,13 +159,18 @@ namespace WebsiteCrawler
             {
                 if (!_dbStuff.CheckIfExist(item.Link) && item.Link.Length > 1)
                 {
-                    if (ValidateFilter(item.Link))
+                    string extension = Path.GetExtension(item.Link);
+
+                    if (item.Link.Contains("/") || extension.Length > 2)
                     {
-                        _dbStuff.InputLink(item, 0);
-                    }
-                    else
-                    {
-                        _dbStuff.InputLink(item, 2);
+                        if (item.Link.Contains(":") && !item.Link.Contains("/"))
+                        {
+                            _dbStuff.InputLink(item, 2);
+                        }
+                        else
+                        {
+                            _dbStuff.InputLink(item, 0);
+                        }
                     }
                 }
             }
@@ -167,21 +178,57 @@ namespace WebsiteCrawler
            await LoadCrawler();
         }
 
-        public bool ValidateFilter(string link)
+        public bool ValidateFilter(Links item)
         {
-            string extension = Path.GetExtension(link);
+            string extension = Path.GetExtension(item.Link);
 
-            if (link.Contains(":") && !link.Contains("/"))
-            {
-                return false;
-            }
+            //if (link.Contains(":") && !link.Contains("/"))
+            //{
+            //    return false;
+            //}
 
-            if (link.Contains("/") || extension.Length > 2)
+            if (item.Link.Contains("/") || extension.Length > 2 && item.Crawled == 0)
             {
                 return true;
             }
 
             return false;
         }
+
+        //public async Task SortLinks(List<Links> links)
+        //{
+        //    foreach (var item in links)
+        //    {
+        //        if (!_dbStuff.CheckIfExist(item.Link) && item.Link.Length > 1)
+        //        {
+        //            if (ValidateFilter(item.Link))
+        //            {
+        //                _dbStuff.InputLink(item, 0);
+        //            }
+        //            else
+        //            {
+        //                _dbStuff.InputLink(item, 2);
+        //            }
+        //        }
+        //    }
+
+        //    await LoadCrawler();
+        //}
+
+        //public bool ValidateFilter(string link)
+        //{
+        //    string extension = Path.GetExtension(link);
+        //    if (link.Contains(":") && !link.Contains("/"))
+        //    {
+        //        return false;
+        //    }
+
+        //    if (link.Contains("/") || extension.Length > 2)
+        //    {
+        //        return true;
+        //    }
+
+        //    return false;
+        //}
     }
 }

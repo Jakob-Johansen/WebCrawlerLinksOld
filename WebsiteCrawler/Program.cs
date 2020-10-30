@@ -18,9 +18,10 @@ namespace WebsiteCrawler
             // KIG PÅ DBSTUFF!
             // KIG PÅ SORTLIKS FILTER IGEN!
 
+            // TILFØJ LOG SYSTEM TIL NÅR ET LINK KOMMER MED FEJL.
             // LAV SÅ DEN OGSÅ KAN CRAWLE JAVASCRIPT SIDER.
-            // LAV SÅ DEN TJEKKER OM DER KOMMER SKRÅSTREJ EFTER LINKET, OG TJEK OM DER ER SKRÅSTREJ FØR CRAWLED UNDERLINK.
-            Crawler crawler = new Crawler("https://www.proshop.dk/");
+            // LAV SÅ DEN TJEKKER OM DER KOMMER SKRÅSTREG EFTER LINKET, OG TJEK OM DER ER SKRÅSTREG FØR CRAWLED UNDERLINK.
+            Crawler crawler = new Crawler("https://www.adidas.dk/");
             await crawler.LoadCrawler();
         }
     }
