@@ -13,11 +13,11 @@ namespace WebsiteCrawler
 {
     public class Crawler
     {
-        private readonly DbStuff _dbStuff = new DbStuff();
-
         private readonly string _url;
 
-        private readonly Timer _timer = new Timer();
+        private readonly DbStuff _dbStuff = new DbStuff();
+
+        private readonly Timer _timer;
 
         private readonly HttpClient _httpClient;
 
@@ -28,9 +28,10 @@ namespace WebsiteCrawler
             _url = url.Trim();
             _httpClient = new HttpClient();
             _log = new Logs();
+            _timer = new Timer();
 
-            Console.WriteLine("Crawler Starting");
             _timer.StartTimer();
+            Console.WriteLine("Crawler Starting");
         }
 
         public  async Task LoadCrawler()
@@ -182,11 +183,6 @@ namespace WebsiteCrawler
         {
             string extension = Path.GetExtension(item.Link);
 
-            //if (link.Contains(":") && !link.Contains("/"))
-            //{
-            //    return false;
-            //}
-
             if (item.Link.Contains("/") || extension.Length > 2 && item.Crawled == 0)
             {
                 return true;
@@ -194,41 +190,5 @@ namespace WebsiteCrawler
 
             return false;
         }
-
-        //public async Task SortLinks(List<Links> links)
-        //{
-        //    foreach (var item in links)
-        //    {
-        //        if (!_dbStuff.CheckIfExist(item.Link) && item.Link.Length > 1)
-        //        {
-        //            if (ValidateFilter(item.Link))
-        //            {
-        //                _dbStuff.InputLink(item, 0);
-        //            }
-        //            else
-        //            {
-        //                _dbStuff.InputLink(item, 2);
-        //            }
-        //        }
-        //    }
-
-        //    await LoadCrawler();
-        //}
-
-        //public bool ValidateFilter(string link)
-        //{
-        //    string extension = Path.GetExtension(link);
-        //    if (link.Contains(":") && !link.Contains("/"))
-        //    {
-        //        return false;
-        //    }
-
-        //    if (link.Contains("/") || extension.Length > 2)
-        //    {
-        //        return true;
-        //    }
-
-        //    return false;
-        //}
     }
 }
