@@ -17,8 +17,7 @@ namespace WebsiteCrawler
         }
 
         public void CreateLog(string url, string execption)
-        {            
-            //
+        {
             string logContainerString = "!==============================================!";
 
             using StreamWriter sw = File.AppendText(_folderPath);
