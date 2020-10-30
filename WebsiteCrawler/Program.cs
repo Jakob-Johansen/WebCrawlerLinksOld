@@ -16,7 +16,7 @@ namespace WebsiteCrawler
             // http://monosoft.dk/
 
             // KIG PÅ DBSTUFF!
-            // KIG PÅ SORTLIKS FILTER IGEN!
+            // KIG PÅ FILTERED I LOADCRAWLER IGEN!
 
             // LAV SÅ DEN OGSÅ KAN CRAWLE JAVASCRIPT SIDER.
             // LAV SÅ DEN TJEKKER OM DER KOMMER SKRÅSTREG EFTER LINKET, OG TJEK OM DER ER SKRÅSTREG FØR CRAWLED UNDERLINK.
