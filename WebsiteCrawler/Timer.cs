@@ -33,7 +33,7 @@ namespace WebsiteCrawler
             }
         }
 
-        private void Duration()
+        public void Duration()
         {
             var result = _endTimer - _startTimer;
 

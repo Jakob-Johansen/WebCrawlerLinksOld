@@ -35,6 +35,7 @@ namespace WebsiteCrawler
 
             SqlDataReader reader = command.ExecuteReader();
 
+            reader.Close();
             command.Connection.Close();
             sqlConn.Close();
         }
@@ -60,7 +61,7 @@ namespace WebsiteCrawler
                     return true;
                 }
                     Console.WriteLine(reader["Link"].ToString());
-                }
+            }
 
             reader.Close();
             command.Connection.Close();
@@ -73,31 +74,28 @@ namespace WebsiteCrawler
         {
             string query = "SELECT * FROM Links WHERE Link=@Link";
 
-            using (SqlConnection sqlConn = new SqlConnection(_connString))
+            using SqlConnection sqlConn = new SqlConnection(_connString);
+            using SqlCommand command = new SqlCommand(query, sqlConn);
+
+            command.Connection.Open();
+
+            command.Parameters.AddWithValue("@Link", url);
+
+            using SqlDataReader reader = command.ExecuteReader();
+            while (reader.Read())
             {
-                using (SqlCommand command = new SqlCommand(query, sqlConn))
+                int getCrawled = Convert.ToInt32(reader["Crawled"]);
+
+                if (url == reader["Link"].ToString() && getCrawled == 1)
                 {
-                    command.Connection.Open();
-
-                    command.Parameters.AddWithValue("@Link", url);
-
-                    using (SqlDataReader reader = command.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            int getCrawled = Convert.ToInt32(reader["Crawled"]);
-
-                            if (url == reader["Link"].ToString() && getCrawled == 1)
-                            {
-                                return true;
-                            }
-                        }
-                        reader.Close();
-                    }
-                    command.Connection.Close();
+                    return true;
                 }
-                sqlConn.Close();
             }
+
+            reader.Close();
+            command.Connection.Close();
+            sqlConn.Close();
+
             return false;
         }
 
@@ -106,29 +104,28 @@ namespace WebsiteCrawler
             string getAllQuery = "SELECT * FROM Links WHERE Crawled = 0 ORDER BY Id DESC";
             var linkModel = new Links();
 
-            using (SqlConnection sqlConn = new SqlConnection(_connString))
+            using SqlConnection sqlConn = new SqlConnection(_connString);
+
+            using SqlCommand command = new SqlCommand(getAllQuery, sqlConn);
+
+            command.Connection.Open();
+
+            using SqlDataReader reader = command.ExecuteReader();
+                    
+            while (reader.Read())
             {
-                using (SqlCommand command = new SqlCommand(getAllQuery, sqlConn))
-                {
-                    command.Connection.Open();
-
-                    using (SqlDataReader reader = command.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            int GetId = Convert.ToInt32(reader["Id"]);
-                            int GetCrawled = Convert.ToInt32(reader["Crawled"]);
-
-                            linkModel.Id = GetId;
-                            linkModel.Link = reader["Link"].ToString();
-                            linkModel.Crawled = GetCrawled;
-                        }
-                        reader.Close();
-                    }
-                    command.Connection.Close();
-                }
-                sqlConn.Close();
+                int GetId = Convert.ToInt32(reader["Id"]);
+                int GetCrawled = Convert.ToInt32(reader["Crawled"]);
+                
+                linkModel.Id = GetId;
+                linkModel.Link = reader["Link"].ToString();
+                linkModel.Crawled = GetCrawled;
             }
+
+            reader.Close();
+            command.Connection.Close();
+            sqlConn.Close();
+
             return linkModel;
         }
 
@@ -154,6 +151,8 @@ namespace WebsiteCrawler
             }
 
             SqlDataReader reader = command.ExecuteReader();
+
+            reader.Close();
             command.Connection.Close();
             sqlConn.Close();
         }
