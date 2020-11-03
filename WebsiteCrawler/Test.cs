@@ -24,6 +24,8 @@ namespace WebsiteCrawler
 
         private readonly Logs _log;
 
+        private Browser _browser;
+
         public Test(string url)
         {
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
@@ -102,9 +104,9 @@ namespace WebsiteCrawler
 
                     List<Links> linkList = new List<Links>();
 
-                    using Browser browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+                    _browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
 
-                    Page page = await browser.NewPageAsync();
+                    Page page = await _browser.NewPageAsync();
                     await page.GoToAsync(url);
                     string test2 = await page.GetContentAsync();
 
@@ -113,7 +115,8 @@ namespace WebsiteCrawler
 
                     var filteredLinks = test1.DocumentNode.Descendants().Where(node => node.Name.Equals("a")).ToList().Where(x => x.Attributes.Any(t => t.Name.Equals("href")));
 
-                    await browser.CloseAsync();
+                    await _browser.CloseAsync();
+                    await _browser.DisposeAsync();
 
                     foreach (var item in filteredLinks)
                     {
@@ -204,9 +207,12 @@ namespace WebsiteCrawler
             return false;
         }
 
-        static void OnProcessExit(object sender, EventArgs e)
+        private void OnProcessExit(object sender, EventArgs e)
         {
+            _browser.CloseAsync();
+            _browser.DisposeAsync();
 
+            Console.WriteLine("LÆS LIGE OP PÅ DET HER");
         }
     }
 }
