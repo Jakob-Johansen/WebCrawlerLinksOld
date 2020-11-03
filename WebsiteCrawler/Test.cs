@@ -1,16 +1,18 @@
 ﻿using HtmlAgilityPack;
+using PuppeteerSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using WebsiteCrawler.Models;
 
 namespace WebsiteCrawler
 {
-    public class Crawler
+    public class Test
     {
         private readonly string _url;
 
@@ -22,8 +24,10 @@ namespace WebsiteCrawler
 
         private readonly Logs _log;
 
-        public Crawler(string url)
+        public Test(string url)
         {
+            AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
+            
             _url = url.Trim();
             _httpClient = new HttpClient();
             _log = new Logs();
@@ -33,7 +37,7 @@ namespace WebsiteCrawler
             Console.WriteLine("Crawler Starting\n");
         }
 
-        public  async Task LoadCrawler()
+        public async Task LoadCrawler()
         {
             if (_url == null || _url.Length == 0)
             {
@@ -94,14 +98,22 @@ namespace WebsiteCrawler
                 }
                 else
                 {
-                    var html = await _httpClient.GetStringAsync(url);
+                    await new BrowserFetcher().DownloadAsync(BrowserFetcher.DefaultRevision);
 
-                    HtmlDocument htmlDocument = new HtmlDocument();
-
-                    htmlDocument.LoadHtml(html);
-
-                    var filteredLinks = htmlDocument.DocumentNode.Descendants().Where(node => node.Name.Equals("a")).ToList().Where(x => x.Attributes.Any(t => t.Name.Equals("href")));
                     List<Links> linkList = new List<Links>();
+
+                    using Browser browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+
+                    Page page = await browser.NewPageAsync();
+                    await page.GoToAsync(url);
+                    string test2 = await page.GetContentAsync();
+
+                    var test1 = new HtmlDocument();
+                    test1.LoadHtml(test2);
+
+                    var filteredLinks = test1.DocumentNode.Descendants().Where(node => node.Name.Equals("a")).ToList().Where(x => x.Attributes.Any(t => t.Name.Equals("href")));
+
+                    await browser.CloseAsync();
 
                     foreach (var item in filteredLinks)
                     {
@@ -136,6 +148,7 @@ namespace WebsiteCrawler
 
                 await LoadCrawler();
             }
+
             _httpClient.Dispose();
         }
 
@@ -143,7 +156,8 @@ namespace WebsiteCrawler
         {
             if (link.Contains("http"))
             {
-                Links linkModel = new Links() {
+                Links linkModel = new Links()
+                {
                     Link = link,
                     Crawled = 1
                 };
@@ -174,8 +188,8 @@ namespace WebsiteCrawler
                     }
                 }
             }
-            
-           await LoadCrawler();
+
+            await LoadCrawler();
         }
 
         public bool ValidateFilter(Links item)
@@ -188,6 +202,11 @@ namespace WebsiteCrawler
             }
 
             return false;
+        }
+
+        static void OnProcessExit(object sender, EventArgs e)
+        {
+
         }
     }
 }
