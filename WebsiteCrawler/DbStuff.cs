@@ -19,7 +19,7 @@ namespace WebsiteCrawler
 
             using SqlConnection sqlConn = new SqlConnection(_connString);
             using SqlCommand command = new SqlCommand(query, sqlConn);
-            
+
             command.Connection.Open();
 
             command.Parameters.AddWithValue("@Link", link.Link).Value = link.Link;
@@ -60,7 +60,7 @@ namespace WebsiteCrawler
                 {
                     return true;
                 }
-                    Console.WriteLine(reader["Link"].ToString());
+                Console.WriteLine(reader["Link"].ToString());
             }
 
             reader.Close();

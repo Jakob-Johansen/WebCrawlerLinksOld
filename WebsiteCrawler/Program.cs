@@ -15,13 +15,25 @@ namespace WebsiteCrawler
             // https://www.proshop.dk/
             // http://monosoft.dk/
 
-            // KIG PÅ DBSTUFF!
-            // KIG PÅ SORTLIKS FILTER IGEN!
+            // Javascript side
+            // https://madfaerd.org/
 
-            // LAV SÅ DEN OGSÅ KAN CRAWLE JAVASCRIPT SIDER.
+            // KIG PÅ DBSTUFF!
+            // KIG PÅ FILTERED I LOADCRAWLER IGEN!
+
+            // LÆS BEST PRATCIS Puppeteer.
+            // LAV SÅ DEN IKKE ÅBNER OG LUKKER NYE PUPPETEER BROWSERE MEN KUN NYE PAGES HVOR DEN LUKKER DE GAMLE
+
+            // LÆR OM EVENTS I C#
+
+            // LAV SÅ DEN TJEKKER OM DER ER ET SITEMAP FØR DEN GÅR IGANG MED AT HENTE LINKS, ELLERS SKAL DEN BRUGE SITEMAPPET.
             // LAV SÅ DEN TJEKKER OM DER KOMMER SKRÅSTREG EFTER LINKET, OG TJEK OM DER ER SKRÅSTREG FØR CRAWLED UNDERLINK.
-            Crawler crawler = new Crawler("https://www.adidas.dk/");
-            await crawler.LoadCrawler();
+            //Crawler crawler = new Crawler("http://monosoft.dk/");
+            //await crawler.LoadCrawler();
+
+
+            Test test = new Test("https://www.automobile.tn");
+            await test.LoadCrawler();
         }
     }
 }

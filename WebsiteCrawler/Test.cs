@@ -1,16 +1,19 @@
 ﻿using HtmlAgilityPack;
+using PuppeteerSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WebsiteCrawler.Models;
 
 namespace WebsiteCrawler
 {
-    public class Crawler
+    public class Test
     {
         private readonly string _url;
 
@@ -22,18 +25,26 @@ namespace WebsiteCrawler
 
         private readonly Logs _log;
 
-        public Crawler(string url)
+        private Browser _browser;
+
+        private bool _browserRunning = false;
+
+        public Test(string url)
         {
+            AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
+            
             _url = url.Trim();
             _httpClient = new HttpClient();
             _log = new Logs();
             _timer = new Timer();
 
+            new BrowserFetcher().DownloadAsync(BrowserFetcher.DefaultRevision);
+
             _timer.StartTimer();
             Console.WriteLine("Crawler Starting\n");
         }
 
-        public  async Task LoadCrawler()
+        public async Task LoadCrawler()
         {
             if (_url == null || _url.Length == 0)
             {
@@ -47,6 +58,9 @@ namespace WebsiteCrawler
 
                 if (nextLink.Id == 0)
                 {
+                    await _browser.CloseAsync();
+                    await _browser.DisposeAsync();
+
                     _timer.StopTimer();
                     Console.WriteLine("Crawler Done");
                     return;
@@ -58,6 +72,7 @@ namespace WebsiteCrawler
                     Console.WriteLine("Crawled Id: " + nextLink.Id);
                     Console.WriteLine("Crawled Link: " + nextLink.Link);
                     _dbStuff.UpdateLink(nextLink.Id, 1);
+
                     await StartWebCrawler(nextLink);
                 }
                 else
@@ -94,13 +109,25 @@ namespace WebsiteCrawler
                 }
                 else
                 {
-                    var html = await _httpClient.GetStringAsync(url);
 
-                    HtmlDocument htmlDocument = new HtmlDocument();
+                    if (_browserRunning == false)
+                    {
+                        _browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+                        _browserRunning = true;
+                    }
 
-                    htmlDocument.LoadHtml(html);
+                    using Page page = await _browser.NewPageAsync();
 
-                    var filteredLinks = htmlDocument.DocumentNode.Descendants().Where(node => node.Name.Equals("a")).ToList().Where(x => x.Attributes.Any(t => t.Name.Equals("href")));
+                    await page.GoToAsync(url);
+                    string test2 = await page.GetContentAsync();
+
+                    var test1 = new HtmlDocument();
+                    test1.LoadHtml(test2);
+
+                    var filteredLinks = test1.DocumentNode.Descendants().Where(node => node.Name.Equals("a")).ToList().Where(x => x.Attributes.Any(t => t.Name.Equals("href")));
+
+                    await page.CloseAsync();
+
                     List<Links> linkList = new List<Links>();
 
                     foreach (var item in filteredLinks)
@@ -136,6 +163,7 @@ namespace WebsiteCrawler
 
                 await LoadCrawler();
             }
+
             _httpClient.Dispose();
         }
 
@@ -143,7 +171,8 @@ namespace WebsiteCrawler
         {
             if (link.Contains("http"))
             {
-                Links linkModel = new Links() {
+                Links linkModel = new Links()
+                {
                     Link = link,
                     Crawled = 1
                 };
@@ -174,8 +203,8 @@ namespace WebsiteCrawler
                     }
                 }
             }
-            
-           await LoadCrawler();
+
+            await LoadCrawler();
         }
 
         public bool ValidateFilter(Links item)
@@ -188,6 +217,14 @@ namespace WebsiteCrawler
             }
 
             return false;
+        }
+
+        private void OnProcessExit(object sender, EventArgs e)
+        {
+            _browser.CloseAsync();
+            _browser.DisposeAsync();
+
+            Console.WriteLine("LÆS LIGE OP PÅ DET HER");
         }
     }
 }
