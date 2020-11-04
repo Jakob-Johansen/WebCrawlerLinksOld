@@ -224,7 +224,7 @@ namespace WebsiteCrawler
             _browser.CloseAsync();
             _browser.DisposeAsync();
 
-            Console.WriteLine("LÆS LIGE OP PÅ DET HER");
+            //Console.WriteLine("LÆS LIGE OP PÅ DET HER");
         }
     }
 }
