@@ -31,7 +31,6 @@ namespace WebsiteCrawler
             //Crawler crawler = new Crawler("http://monosoft.dk/");
             //await crawler.LoadCrawler();
 
-
             Test test = new Test("https://www.automobile.tn");
             await test.LoadCrawler();
         }
