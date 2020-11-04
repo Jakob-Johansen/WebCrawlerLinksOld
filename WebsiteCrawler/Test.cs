@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WebsiteCrawler.Models;
 
@@ -26,6 +27,8 @@ namespace WebsiteCrawler
 
         private Browser _browser;
 
+        private bool _browserRunning = false;
+
         public Test(string url)
         {
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
@@ -34,6 +37,8 @@ namespace WebsiteCrawler
             _httpClient = new HttpClient();
             _log = new Logs();
             _timer = new Timer();
+
+            new BrowserFetcher().DownloadAsync(BrowserFetcher.DefaultRevision);
 
             _timer.StartTimer();
             Console.WriteLine("Crawler Starting\n");
@@ -53,6 +58,9 @@ namespace WebsiteCrawler
 
                 if (nextLink.Id == 0)
                 {
+                    await _browser.CloseAsync();
+                    await _browser.DisposeAsync();
+
                     _timer.StopTimer();
                     Console.WriteLine("Crawler Done");
                     return;
@@ -64,6 +72,7 @@ namespace WebsiteCrawler
                     Console.WriteLine("Crawled Id: " + nextLink.Id);
                     Console.WriteLine("Crawled Link: " + nextLink.Link);
                     _dbStuff.UpdateLink(nextLink.Id, 1);
+
                     await StartWebCrawler(nextLink);
                 }
                 else
@@ -100,13 +109,15 @@ namespace WebsiteCrawler
                 }
                 else
                 {
-                    await new BrowserFetcher().DownloadAsync(BrowserFetcher.DefaultRevision);
 
-                    List<Links> linkList = new List<Links>();
+                    if (_browserRunning == false)
+                    {
+                        _browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+                        _browserRunning = true;
+                    }
 
-                    _browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+                    using Page page = await _browser.NewPageAsync();
 
-                    Page page = await _browser.NewPageAsync();
                     await page.GoToAsync(url);
                     string test2 = await page.GetContentAsync();
 
@@ -115,8 +126,9 @@ namespace WebsiteCrawler
 
                     var filteredLinks = test1.DocumentNode.Descendants().Where(node => node.Name.Equals("a")).ToList().Where(x => x.Attributes.Any(t => t.Name.Equals("href")));
 
-                    await _browser.CloseAsync();
-                    await _browser.DisposeAsync();
+                    await page.CloseAsync();
+
+                    List<Links> linkList = new List<Links>();
 
                     foreach (var item in filteredLinks)
                     {
