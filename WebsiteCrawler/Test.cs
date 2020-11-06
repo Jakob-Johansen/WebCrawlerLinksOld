@@ -87,7 +87,7 @@ namespace WebsiteCrawler
             }
         }
 
-        public async Task StartWebCrawler(Links thisModel)
+        private async Task StartWebCrawler(Links thisModel)
         {
             string url;
 
@@ -109,7 +109,6 @@ namespace WebsiteCrawler
                 }
                 else
                 {
-
                     if (_browserRunning == false)
                     {
                         _browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
@@ -119,12 +118,12 @@ namespace WebsiteCrawler
                     using Page page = await _browser.NewPageAsync();
 
                     await page.GoToAsync(url);
-                    string test2 = await page.GetContentAsync();
+                    string pageContent = await page.GetContentAsync();
 
-                    var test1 = new HtmlDocument();
-                    test1.LoadHtml(test2);
+                    HtmlDocument htmlDocument = new HtmlDocument();
+                    htmlDocument.LoadHtml(pageContent);
 
-                    var filteredLinks = test1.DocumentNode.Descendants().Where(node => node.Name.Equals("a")).ToList().Where(x => x.Attributes.Any(t => t.Name.Equals("href")));
+                    var filteredLinks = htmlDocument.DocumentNode.Descendants().Where(node => node.Name.Equals("a")).ToList().Where(x => x.Attributes.Any(t => t.Name.Equals("href")));
 
                     await page.CloseAsync();
 
@@ -167,7 +166,7 @@ namespace WebsiteCrawler
             _httpClient.Dispose();
         }
 
-        public async Task SortLinks(string link)
+        private async Task SortLinks(string link)
         {
             if (link.Contains("http"))
             {
@@ -182,7 +181,7 @@ namespace WebsiteCrawler
             }
         }
 
-        public async Task SortLinks(List<Links> links)
+        private async Task SortLinks(List<Links> links)
         {
             foreach (var item in links)
             {
@@ -207,7 +206,7 @@ namespace WebsiteCrawler
             await LoadCrawler();
         }
 
-        public bool ValidateFilter(Links item)
+        private bool ValidateFilter(Links item)
         {
             string extension = Path.GetExtension(item.Link);
 
