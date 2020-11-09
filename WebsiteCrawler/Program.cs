@@ -40,11 +40,11 @@ namespace WebsiteCrawler
 
             // MÅSKE, GØR SÅ DEN CRAWLER FLERE SIDER PÅ EN GANG.
 
-            //TILFØJ ROBOTS:TXT READER OG XML READER TIL PROJEKTET.
+            // TILFØJ ROBOTS:TXT READER OG XML READER TIL PROJEKTET.
 
 
-            //Crawler crawler = new Crawler("http://monosoft.dk/");
-            //await crawler.LoadCrawler();
+            // Crawler crawler = new Crawler("http://monosoft.dk/");
+            // await crawler.LoadCrawler();
 
             Test test = new Test("https://www.automobile.tn/");
             await test.LoadCrawler();
