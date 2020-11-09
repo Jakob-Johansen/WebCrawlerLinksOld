@@ -1,0 +1,7 @@
+User-agent: *
+
+#fjern url fra søgningsresultater 
+Disallow: /soeg?*
+Disallow: /webshop/checkout/
+
+Sitemap: https://www.jemogfix.dk/sitemap
