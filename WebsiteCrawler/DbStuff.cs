@@ -13,7 +13,7 @@ namespace WebsiteCrawler
     {
         private readonly string _connString = "Data Source=DESKTOP-UQ2GKS7;Initial Catalog=WebsiteCrawler; Integrated Security=true;";
 
-        public void InputLink(Links link, int CrawelOrNot)
+        public void InputLink(Links link, int CrawelOrNot = 0)
         {
             string query = "INSERT INTO Links(Link,Crawled) VALUES(@Link, @Crawled)";
 

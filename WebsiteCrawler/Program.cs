@@ -10,7 +10,7 @@ namespace WebsiteCrawler
     {
         static async Task Main(string[] args)
         {
-            // https://www.automobile.tn
+            // https://www.automobile.tn/
             // https://www.apple.com/
             // https://www.proshop.dk/
             // http://monosoft.dk/
@@ -43,7 +43,7 @@ namespace WebsiteCrawler
             // Crawler crawler = new Crawler("http://monosoft.dk/");
             // await crawler.LoadCrawler();
 
-            Test test = new Test("http://monosoft.dk/");
+            Test test = new Test("https://www.automobile.tn/");
             await test.LoadCrawler();
         }
     }
