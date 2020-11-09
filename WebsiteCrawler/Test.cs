@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WebsiteCrawler.Models;
+using WebsiteCrawler.ReadSiteMapFolder;
 
 namespace WebsiteCrawler
 {
@@ -27,16 +28,19 @@ namespace WebsiteCrawler
 
         private Browser _browser;
 
+        private readonly ReadRobots _readRobots;
+
         private bool _browserRunning = false;
 
         public Test(string url)
         {
-            AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
+            //AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
             
             _url = url.Trim();
             _httpClient = new HttpClient();
             _log = new Logs();
             _timer = new Timer();
+            _readRobots = new ReadRobots();
 
             new BrowserFetcher().DownloadAsync(BrowserFetcher.DefaultRevision);
 
@@ -58,8 +62,11 @@ namespace WebsiteCrawler
 
                 if (nextLink.Id == 0)
                 {
-                    await _browser.CloseAsync();
-                    await _browser.DisposeAsync();
+                    if (_browserRunning == true)
+                    {
+                        await _browser.CloseAsync();
+                        await _browser.DisposeAsync();
+                    }
 
                     _timer.StopTimer();
                     Console.WriteLine("Crawler Done");
@@ -83,7 +90,16 @@ namespace WebsiteCrawler
             }
             else
             {
-                await SortLinks(_url);
+                if (await _readRobots.StartReadRobots(_url) == true)
+                {
+                   await LoadCrawler();
+                    return;
+                }
+                else
+                {
+                    Console.WriteLine("Starting Manually Crwaler\n");
+                    await SortLinks(_url);
+                }
             }
         }
 
@@ -220,8 +236,12 @@ namespace WebsiteCrawler
 
         private void OnProcessExit(object sender, EventArgs e)
         {
-            _browser.CloseAsync();
-            _browser.DisposeAsync();
+
+            if (_browserRunning == true)
+            {
+                _browser.CloseAsync();
+                _browser.DisposeAsync();
+            }
 
             //Console.WriteLine("LÆS LIGE OP PÅ DET HER");
         }

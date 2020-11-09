@@ -18,6 +18,15 @@ namespace WebsiteCrawler
             // Javascript side
             // https://madfaerd.org/
 
+            // Har sitemap
+            // https://www.arla.dk/
+            // https://www.microsoft.com/
+            // https://netto.dk/
+            // https://www.foetex.dk/
+            // https://www.bilka.dk/
+            // https://www.skousen.dk/
+            // https://www.xl-byg.dk/
+
             // KIG PÅ DBSTUFF!
             // KIG PÅ FILTERED I LOADCRAWLER IGEN!
 
@@ -37,7 +46,7 @@ namespace WebsiteCrawler
             //Crawler crawler = new Crawler("http://monosoft.dk/");
             //await crawler.LoadCrawler();
 
-            Test test = new Test("https://www.automobile.tn");
+            Test test = new Test("https://www.arla.dk/");
             await test.LoadCrawler();
         }
     }
