@@ -50,7 +50,7 @@ namespace WebsiteCrawler
 
         public async Task LoadCrawler()
         {
-            if (_url == null || _url.Length == 0)
+            if (_url == null)
             {
                 Console.WriteLine("Dit link er ugyldit");
                 return;
@@ -60,16 +60,9 @@ namespace WebsiteCrawler
             {
                 var nextLink = _dbStuff.GetNextNotCrawled();
 
-                if (nextLink.Id == 0)
+                if (nextLink.Id == 0 || nextLink == null)
                 {
-                    if (_browserRunning == true)
-                    {
-                        await _browser.CloseAsync();
-                        await _browser.DisposeAsync();
-                    }
-
-                    _timer.StopTimer();
-                    Console.WriteLine("Crawler Done");
+                    CrawlerDone();
                     return;
                 }
 
@@ -92,7 +85,7 @@ namespace WebsiteCrawler
             {
                 if (await _readRobots.StartReadRobots(_url) == true)
                 {
-                   await LoadCrawler();
+                    CrawlerDone();
                     return;
                 }
                 else
@@ -232,6 +225,18 @@ namespace WebsiteCrawler
             }
 
             return false;
+        }
+
+        private void CrawlerDone()
+        {
+            if (_browserRunning == true)
+            {
+                _browser.CloseAsync();
+                _browser.DisposeAsync();
+            }
+
+            _timer.StopTimer();
+            Console.WriteLine("Crawler Done");
         }
 
         private void OnProcessExit(object sender, EventArgs e)

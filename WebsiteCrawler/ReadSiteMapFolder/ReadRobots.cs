@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using WebsiteCrawler.Models;
 
 namespace WebsiteCrawler.ReadSiteMapFolder
 {
@@ -13,11 +14,13 @@ namespace WebsiteCrawler.ReadSiteMapFolder
         private string _robottxtUrl;
         private readonly RobotsPathCheck _robotsPathCheck;
         private readonly ReadXml _readXml;
+        private readonly DbStuff _dbStuff;
 
         public ReadRobots()
         {
             _robotsPathCheck = new RobotsPathCheck();
             _readXml = new ReadXml();
+            _dbStuff = new DbStuff();
         }
 
         public async Task<bool> StartReadRobots(string url)
@@ -36,8 +39,9 @@ namespace WebsiteCrawler.ReadSiteMapFolder
 
                 webClient.DownloadFile(_robottxtUrl, _robotsPathCheck.CheckFolderPath());
 
-                if (ReadTextFile() == true)
+                if (ReadTextFile(url) == true)
                 {
+                    
                     return true;
                 }
 
@@ -50,7 +54,7 @@ namespace WebsiteCrawler.ReadSiteMapFolder
             }
         }
 
-        private bool ReadTextFile()
+        private bool ReadTextFile(string url)
         {
             string[] robotsText = System.IO.File.ReadAllLines(_robotsPathCheck.CheckFolderPath());
 
@@ -74,6 +78,14 @@ namespace WebsiteCrawler.ReadSiteMapFolder
 
                 return false;
             }
+
+            Links link = new Links()
+            {
+                Link = url,
+                Crawled = 3
+            };
+
+            _dbStuff.InputLink(link, 3);
 
             foreach (var item in sitemapList)
             {
