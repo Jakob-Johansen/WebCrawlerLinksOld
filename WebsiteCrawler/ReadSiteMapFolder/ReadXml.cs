@@ -32,7 +32,7 @@ namespace WebsiteCrawler.ReadSiteMapFolder
                 {
                     if (reader.Value.Contains("http") && !reader.Value.Contains(".gz"))
                     {
-                        if (reader.Value.ToLower().Contains(".xml"))
+                        if (reader.Value.ToLower().Contains(".xml") || reader.Value.ToLower().Contains("sitemap"))
                         {
                             StartReadingXml(reader.Value);
                         }

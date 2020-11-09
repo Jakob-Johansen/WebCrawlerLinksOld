@@ -35,8 +35,9 @@ namespace WebsiteCrawler
         public Test(string url)
         {
             //AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
-            
-            _url = url.Trim();
+
+            _url = CheckUrl(url);
+
             _httpClient = new HttpClient();
             _log = new Logs();
             _timer = new Timer();
@@ -237,6 +238,16 @@ namespace WebsiteCrawler
 
             _timer.StopTimer();
             Console.WriteLine("Crawler Done");
+        }
+
+        public string CheckUrl(string url)
+        {
+            if (url.Last().ToString() != "/")
+            {
+                url = url + "/";
+            }
+
+            return url;
         }
 
         private void OnProcessExit(object sender, EventArgs e)
