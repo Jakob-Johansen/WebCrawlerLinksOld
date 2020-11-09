@@ -244,7 +244,7 @@ namespace WebsiteCrawler
         {
             if (url.Last().ToString() != "/")
             {
-                url = url + "/";
+                url += url + "/";
             }
 
             return url;
