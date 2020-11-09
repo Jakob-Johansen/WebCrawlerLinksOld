@@ -27,26 +27,23 @@ namespace WebsiteCrawler
             // https://www.skousen.dk/
             // https://www.xl-byg.dk/
 
-            // KIG PÅ DBSTUFF!
             // KIG PÅ FILTERED I LOADCRAWLER IGEN!
 
             // LÆS BEST PRATCIS Puppeteer. -DONE
-            // LAV SÅ DEN IKKE ÅBNER OG LUKKER NYE PUPPETEER BROWSERE MEN KUN NYE PAGES HVOR DEN LUKKER DE GAMLE -DONE
+            // LAV SÅ DEN IKKE ÅBNER OG LUKKER NYE PUPPETEER BROWSERE MEN KUN NYE PAGES HVOR DEN LUKKER DE GAMLE. -DONE
+            // LAV SÅ DEN TJEKKER OM DER ER ET SITEMAP FØR DEN GÅR IGANG MED AT HENTE LINKS, ELLERS SKAL DEN BRUGE SITEMAPPET. -DONE
+            // TILFØJ ROBOTS:TXT READER OG XML READER TIL PROJEKTET. -DONE
 
             // LÆR OM EVENTS I C#
 
-            // LAV SÅ DEN TJEKKER OM DER ER ET SITEMAP FØR DEN GÅR IGANG MED AT HENTE LINKS, ELLERS SKAL DEN BRUGE SITEMAPPET.
             // LAV SÅ DEN TJEKKER OM DER KOMMER SKRÅSTREG EFTER LINKET, OG TJEK OM DER ER SKRÅSTREG FØR CRAWLED UNDERLINK.
 
             // MÅSKE, GØR SÅ DEN CRAWLER FLERE SIDER PÅ EN GANG.
 
-            // TILFØJ ROBOTS:TXT READER OG XML READER TIL PROJEKTET.
-
-
             // Crawler crawler = new Crawler("http://monosoft.dk/");
             // await crawler.LoadCrawler();
 
-            Test test = new Test("https://www.jemogfix.dk/");
+            Test test = new Test("http://monosoft.dk/");
             await test.LoadCrawler();
         }
     }

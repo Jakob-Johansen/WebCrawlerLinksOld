@@ -31,7 +31,7 @@ namespace WebsiteCrawler.ReadSiteMapFolder
 
             using HttpClient httpClient = new HttpClient();
 
-            HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(url);
+            HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(_robottxtUrl);
 
             if (httpResponseMessage.StatusCode == HttpStatusCode.OK)
             {
@@ -41,7 +41,6 @@ namespace WebsiteCrawler.ReadSiteMapFolder
 
                 if (ReadTextFile(url) == true)
                 {
-                    
                     return true;
                 }
 
@@ -49,7 +48,7 @@ namespace WebsiteCrawler.ReadSiteMapFolder
             }
             else
             {
-                Console.WriteLine("No Robots.txt");
+                Console.WriteLine("No Robots.txt\n");
                 return false;
             }
         }
